@@ -2,8 +2,11 @@
 forward TCP connections through HTTP proxy
 
 
-## Usage
-### stdio.js
+## stdio.js
+Forward stdio through HTTP proxy to target host.
+It's useful if you want to use ssh to connect to remote host through HTTP proxy.
+
+### Usage
 1. edit stdio.js. Set `cfg.proxy` to your HTTP proxy server address.
     ```
      host: "10.167.196.133",
@@ -18,7 +21,10 @@ Host choose_a_host_name
 
 3. use `ssh choose_a_host_name` to connect to host through the HTTP proxy
 
-### tcp.js
+## tcp.js
+Forward tcp connection to remote host through HTTP proxy.
+
+### Usage
 1. edit stdio.js. Set `cfg.proxy` to your HTTP proxy server address.
 	```
      host: "10.167.196.133",
