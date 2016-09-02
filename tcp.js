@@ -56,8 +56,8 @@ function Channel(c, proxy_host, proxy_port) {
     }
     function cleanup_pre() {
         if (this.sock_proxy)
+            this.sock_proxy.end();
         this.sock_client.end();
-        this.sock_proxy.end();
     }
     function cleanup_post() {
         delete this.sock_client;
@@ -151,16 +151,6 @@ Channel.prototype.log = function (fmt) {
     var args = ['%s : ' + fmt, prefix].concat(Array.prototype.slice.call(arguments, 1));
     writeLog.apply(this, args);
 };
-
-function chooseName(prefix) {
-    if (!(prefix in clients))
-        return prefix;
-
-    for(let i = 1; ; i++) {
-        if (!((prefix + '-' + i.toString()) in clients))
-            return prefix + '-' + i.toString();
-    }
-}
 
 function onNewClient(c) {
     var chan = new Channel(c, cfg.proxy.host, cfg.proxy.port);
