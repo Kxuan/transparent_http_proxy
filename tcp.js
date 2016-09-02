@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+"use strict";
 /*
  * MIT License
  */
+const fs = require('fs');
 const net = require('net');
 const util = require('util');
 const dns = require('dns');
@@ -9,6 +11,7 @@ const EventEmitter = require('events');
 const readline = require('readline');
 
 const cfg = {
+    interactive: true,
     local: {
         listen: 9231
         //listen: '/run/proxy.socket'
@@ -28,9 +31,9 @@ var clients_id = 0;
 /**
  * @type {readline.Interface}
  */
-const rl = readline.createInterface(process.stdin, process.stderr);
+var rl = null;
 
-const s = net.createServer(onNewClient);
+var s = net.createServer(onNewClient);
 
 function Channel(c, proxy_host, proxy_port) {
     var events={};
@@ -181,11 +184,16 @@ function onNewClient(c) {
 }
 
 function setupServer() {
+    if (!rl && cfg.interactive !== false) {
+        rl = readline.createInterface(process.stdin, process.stderr);
+        rl.setPrompt('>');
+        rl.prompt();
+        rl.on('line', onReadlineLine);
+    }
     s.listen(cfg.local.listen, function(){
         writeLog("server ready");
     });
     s.on('error', console.error.bind(console));
-
 }
 
 function onReadlineLine(line) {
@@ -257,8 +265,19 @@ function onReadlineLine(line) {
             }
         }
             break;
-        case 'setting':
-            console.log(cfg);
+        case 'config':
+        {
+            let output = args[1];
+            if (!output) {
+                console.log(cfg);
+            } else {
+                fs.writeFileSync(output, JSON.stringify(cfg));
+            }
+        }
+            break;
+        case '?':
+        case 'help':
+            console.log("Help\n======\nexit    - exit\nquit    - alias of `exit`\nlist    - list all clients\nls      - alias of `list`\nlisten  - replace the listen port and keep clients connected.\nforward - forward a client. (only wait state)\ntarget  - set auto-forward target or disable auto forward\nconfig  - print config to screen or write to a file\n");
             break;
         default:
             console.log("Unknow command '%s'.", args[0]);
@@ -272,27 +291,36 @@ function onReadlineLine(line) {
 function writeLog(fmt) {
     if (arguments.length == 1) {
         process.stdout.write(fmt);
+        process.stdout.write('\n');
     } else {
         var args = ['[%s]' + fmt + "\n", (new Date()).toLocaleString()].concat(Array.prototype.slice.call(arguments, 1));
         var log = util.format.apply(util, args);
         process.stdout.write(log);
     }
-    rl.prompt(true);
+
+    if (rl)
+        rl.prompt(true);
 }
 
-rl.setPrompt('>');
-rl.prompt();
-rl.on('line', onReadlineLine);
-
-if (process.argv[2]) {
-    dns.resolve4(process.argv[2], (err, addrs) => {
-        if (err) 
-            throw err;
-        cfg.target.host = addrs[0];
-        cfg.target.port = parseInt(process.argv[3]) ? parseInt(process.argv[3]):80;
+switch (process.argv.length) {
+    case 4:
+    // node tcp.js <host> <port>
+        dns.resolve4(process.argv[2], (err, addrs) => {
+            if (err) 
+                throw err;
+            cfg.target.host = addrs[0];
+            cfg.target.port = parseInt(process.argv[3]);
+            setupServer();
+        });
+    case 3:
+    // node tcp.js <config.json>
+        let outer_cfg = JSON.parse(fs.readFileSync(process.argv[2]));
+        Object.assign(cfg, outer_cfg);
+    case 2:
+    // node tcp.js
         setupServer();
-    });
-} else {
-    setupServer();
+        break;
+    default:
+        console.error("Arguments??");
+        process.exit(1);
 }
-
