@@ -25,16 +25,27 @@ Host choose_a_host_name
 Forward tcp connection to remote host through HTTP proxy.
 
 ### Usage
-1. edit stdio.js. Set `cfg.proxy` to your HTTP proxy server address.
+1. copy `example.json` to `config.json`. And edit `config.json`.
+    Format:
 	```
-     host: "10.167.196.133",
-     port: 8080
+    { "interactive": <true or false. Can user interactive with tcp.js. Set to false if you want tcp.js run as a daemon.>,
+      "local": { 
+        "listen": <port number or a filename. Which port should tcp.js listen on>
+      },
+      "target": {
+        "host": <null or ip address. Which target host should tcp.js forward to. null means disable auto forward.>,
+        "port": <number. Which target port should tcp.js forward to>
+      },
+      "proxy": {
+        "host": <ip address. The server ip of HTTP proxy server>,
+        "port": <port. The server port of HTTP proxy server>
+      }
+    }
 	```
 	
-2. run `node tcp.js <target_host> <target_port>`
-   The `target_host` & `target_port` is the destination where you want to forward to.
+2. run `node tcp.js config.json`
 
-3. let your application to connect to 127.0.0.1:9231
+3. let your application to connect to local listen port.
 
 
 ## Note
