@@ -6,7 +6,6 @@
 const fs = require('fs');
 const net = require('net');
 const util = require('util');
-const dns = require('dns');
 const EventEmitter = require('events');
 const readline = require('readline');
 
@@ -295,22 +294,18 @@ function writeLog(fmt) {
 switch (process.argv.length) {
     case 4:
     // node tcp.js <host> <port>
-        dns.resolve4(process.argv[2], (err, addrs) => {
-            if (err) 
-                throw err;
-            cfg.target.host = addrs[0];
-            cfg.target.port = parseInt(process.argv[3]);
-            setupServer();
-        });
+        cfg.target.host = process.argv[2];
+        cfg.target.port = parseInt(process.argv[3]);
     case 3:
     // node tcp.js <config.json>
         let outer_cfg = JSON.parse(fs.readFileSync(process.argv[2]));
         Object.assign(cfg, outer_cfg);
+        break;
     case 2:
     // node tcp.js
-        setupServer();
         break;
     default:
         console.error("Arguments??");
         process.exit(1);
 }
+setupServer();
