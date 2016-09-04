@@ -71,17 +71,16 @@ Channel.prototype.forward = function (host, port) {
     if (this.sock_proxy !== undefined) {
         throw new Error("Duplicate forward request");
     }
-    var self = this;
     var c = this.sock_client;
     var s = net.connect(this.proxy.port, this.proxy.host, onconnected.bind(this));
     s.once('data', ondata.bind(this));
-    s.on('error', onerror);
+    s.on('error', onerror.bind(this));
     s.once('close', function(){c.end();});
 
     this.state = 'connecting';
 
     function onerror(ex) {
-        self.log("ERROR: %s", ex.message);
+        this.log("ERROR: %s", ex.message);
         s.end();
         c.end();
     }
@@ -278,14 +277,9 @@ function onReadlineLine(line) {
 }
 
 function writeLog(fmt) {
-    if (arguments.length == 1) {
-        process.stdout.write(fmt);
-        process.stdout.write('\n');
-    } else {
-        var args = ['[%s]' + fmt + "\n", (new Date()).toLocaleString()].concat(Array.prototype.slice.call(arguments, 1));
-        var log = util.format.apply(util, args);
-        process.stdout.write(log);
-    }
+    var args = ['\r[%s]' + fmt + "\n", (new Date()).toLocaleString()].concat(Array.prototype.slice.call(arguments, 1));
+    var log = util.format.apply(util, args);
+    process.stdout.write(log);
 
     if (rl)
         rl.prompt(true);
@@ -305,7 +299,7 @@ switch (process.argv.length) {
     // node tcp.js
         break;
     default:
-        console.error("Arguments??");
+        console.error("Hey, check your arguments.");
         process.exit(1);
 }
 setupServer();
