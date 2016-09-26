@@ -177,10 +177,9 @@ function setupServer() {
         rl.setPrompt('>');
         rl.prompt();
         rl.on('line', onReadlineLine);
+        rl.on('close', () => process.exit(0));
     }
-    s.listen(cfg.local.listen, function(){
-        writeLog("server ready");
-    });
+    s.listen(cfg.local.listen, () => writeLog("server ready") );
     s.on('error', console.error.bind(console));
 }
 
