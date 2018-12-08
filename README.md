@@ -15,7 +15,7 @@ It's useful if you want to use ssh to connect to remote host through HTTP proxy.
 
 2. Write these lines into ~/.ssh/config
 	```
-Host choose_a_host_name
+    Host choose_a_host_name
     PorxyCommand /usr/bin/node /path/to/stdio.js 1.2.3.4 22
 	```
 
